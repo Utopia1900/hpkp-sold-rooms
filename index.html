@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查看已售</title>
+    <link rel="stylesheet" href="./lib/css/ui-lightness/jquery-ui-1.10.4.custom.min.css">
+    <link rel="stylesheet" href="./lib/css/ui.jqgrid.css">
+    <script type="text/javascript" src="./lib/js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="./lib/js/i18n/grid.locale-en.js"></script>
+    <script type="text/javascript" src="./lib/js/jquery.jqGrid.min.js"></script>
+    <script type="text/javascript" src="./lib/js/jquery-ui-1.10.4.custom.js"></script>
+    <script type="text/javascript" src="./lib/js/dateFormat.js"></script>
+    <style>
+        table tbody tr td {
+            font-size: 16px;
+        }
+        #exportExcel {
+
+        }
+    </style>
+</head>
+<body>
+<h4>已售出房源数据如下：</h4>
+<table id="soldRoomsTable">
+
+</table>
+<div id="sold_page"></div>
+<div>
+    <button id="exportExcel">导出数据</button>
+</div>
+<script type="text/javascript">
+    var getTokenFromUrl = function (url) {
+        if (url.indexOf('?')>=0) {
+            let arr = url.split('?');
+            let tmp = arr[1].split('=')
+            return tmp[1]
+        }
+    }
+
+    var token = getTokenFromUrl(window.location.href)
+
+    $(function () {
+        if (token) {
+            window.sessionStorage.setItem('activityToken', token)
+        }
+        $("#soldRoomsTable").jqGrid({
+            //caption: '销售员信息',
+            // postData:postData,
+            data: 'saler_list',
+            mtype: 'post',
+            url: 'http://opening.hpnetech.com/api/soldRooms',
+            datatype: "local",
+            ajaxGridOptions: {contentType: 'application/json; charset=utf-8'},
+            colNames: ['楼栋号', '单元号', '房号', '面积(㎡)', '单价(元/㎡)', '总价(元)', '所属销售', '购买时间','客户姓名', '身份证号', '手机号'],
+            colModel: [
+                //{name:'id',index:'id', width:30,align:'center'},
+                {name: 'bNo', index: 'bNo', align: 'center', width: 60, sortable: true},
+                {name: 'uNo', index: 'uNo', align: 'center', width: 60, sortable: true},
+                {name: 'rNo', index: 'rNo', align: 'center', width: 60, sortable: false},
+                {name: 'area', index: 'area', align: 'center', width: 70, align: 'center', sortable: false},
+                {name: 'fuPrice', index: 'fuPrice', align: 'center', width: 70, align: 'center', sortable: false},
+                {name: 'fPrice', index: 'fPrice', align: 'center', width: 70, align: 'center',formatter:formatMoney, sortable: false},
+                {name: 'saler', index: 'saler', align: 'center', width: 70, align: 'center', sortable: false},
+                {name: 'bTime', index: 'bTime', align: 'center', width: 120, align: 'center', formatter:formatDate, sortable: false},
+                {name: 'name', index: 'name', width: 70, align: 'center', sortable: false},
+                {name: 'idCode', index: 'idCode', width: 120, align: 'center', sortable: false},
+                {name: 'mobile', index: 'mobile', align: 'center', width: 80, sortable: false}
+            ],
+            rowNum: 10,
+            pager: '#sold_page',
+            pgtext: '第{0}页 共{1}页',
+            recordtext: '第 {0} - {1}条记录 ',
+            autowidth: true,
+            height: 400,
+            viewrecords: true,
+            sortable: false,
+            jsonReader: {
+                root: "rows",
+                page: "page",
+                total: function (obj) {
+                    return Math.ceil(obj.records / 10);
+                },
+                records: "records",
+                repeatitems: false
+            },
+
+            serializeGridData: function (data) {
+                return JSON.stringify(data);
+            }
+
+        });
+        $('#saler_table').navGrid("#sold_page", {edit: false, add: false, del: false, search: false, refresh: false});
+
+        querySoldInt()
+
+        $('#exportExcel').click(function (e) {
+            e.preventDefault()
+            exportData()
+        })
+        exportData()
+    })
+
+
+
+
+    function querySoldInt() {
+        var postData = {};
+        postData.token = token ? token : window.sessionStorage.getItem('activityToken');
+
+        $("#soldRoomsTable").jqGrid('setGridParam', {datatype: "json", postData: postData}).trigger("reloadGrid");
+    }
+
+    function formatDate (date) {
+        let parseDate = Date.parse(date)
+        let reqDate = (new Date(parseDate)).FormatDate('yyyy-MM-dd hh:mm:ss')
+        if (date) {
+            return reqDate
+        } else {
+            return ''
+        }
+
+    }
+
+    function formatMoney (s, n) {
+        n = n > 0 && n <= 20 ? n : 0
+        s = parseFloat((s + '').replace(/[^\d.-]/g, '')).toFixed(n) + ''
+        var l = s.split('.')[0].split('').reverse()
+        var r = s.split('.')[1]
+        var t = ''
+        for (var i = 0; i < l.length; i++) {
+            t += l[i] + ((i + 1) % 3 === 0 && (i + 1) !== l.length ? ',' : '')
+        }
+        if (n > 0) {
+            return t.split('').reverse().join('') + '.' + r
+        } else {
+            return t.split('').reverse().join('')
+        }
+    }
+
+    // 导出数据
+    function exportData() {
+        var token = token ? token : window.sessionStorage.getItem('activityToken')
+        var url = 'http://opening.hpnetech.com/api/exportData?token=' + token
+        window.open(url)
+        /*$.ajax({
+            type:'GET',
+            url: url,
+            contentType: 'application/json;charset=utf-8',
+            success: function (data) {
+                console.log(data)
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $('.spinner').css('display', 'none');
+                alert('登录失败，请重试！');
+            }
+        })*/
+    }
+
+</script>
+</body>
+</html>
