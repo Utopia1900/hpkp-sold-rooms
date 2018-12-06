@@ -10,6 +10,7 @@
     <script type="text/javascript" src="./lib/js/jquery.jqGrid.min.js"></script>
     <script type="text/javascript" src="./lib/js/jquery-ui-1.10.4.custom.js"></script>
     <script type="text/javascript" src="./lib/js/dateFormat.js"></script>
+    <script type="text/javascript" src="./lib/js/preHTTP.js"></script>
     <style>
         table tbody tr td {
             font-size: 16px;
@@ -48,7 +49,7 @@
             // postData:postData,
             data: 'saler_list',
             mtype: 'post',
-            url: 'http://opening.hpnetech.com/api/soldRooms',
+            url: preHTTP + 'soldRooms',
             datatype: "local",
             ajaxGridOptions: {contentType: 'application/json; charset=utf-8'},
             colNames: ['楼栋号', '单元号', '房号', '面积(㎡)', '单价(元/㎡)', '总价(元)', '所属销售', '购买时间','客户姓名', '身份证号', '手机号'],
@@ -140,22 +141,9 @@
     // 导出数据
     function exportData() {
         var token = token ? token : window.sessionStorage.getItem('activityToken')
-        var url = 'http://opening.hpnetech.com/api/exportData?token=' + token
+        var url = preHTTP + 'exportData?token=' + token
         window.open(url)
-        /*$.ajax({
-            type:'GET',
-            url: url,
-            contentType: 'application/json;charset=utf-8',
-            success: function (data) {
-                console.log(data)
-            },
-            error: function(XMLHttpRequest, textStatus, errorThrown) {
-                $('.spinner').css('display', 'none');
-                alert('登录失败，请重试！');
-            }
-        })*/
     }
-
 </script>
 </body>
 </html>
