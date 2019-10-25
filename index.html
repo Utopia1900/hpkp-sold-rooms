@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>查看已售</title>
@@ -12,138 +13,289 @@
     <script type="text/javascript" src="./lib/js/dateFormat.js"></script>
     <script type="text/javascript" src="./lib/js/preHTTP.js"></script>
     <style>
+        :root {
+            box-sizing: border-box;
+        }
+
+        *,
+        ::after,
+        ::before {
+            box-sizing: inherit
+        }
+
+        header {
+            padding: 2em 20em;
+            background-color: #0072b0;
+            color: #fff;
+        }
+
+        body {
+            background-color: #eee;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
         table tbody tr td {
             font-size: 16px;
         }
-        #exportExcel {
 
+        main {
+            display: block;
+        }
+
+        .wrapper {
+            margin-left: -1.5em;
+            margin-right: -1.5em;
+        }
+
+        .container {
+            width: 100%;
+            display: table;
+            border-spacing: 1.5em 0;
+        }
+
+        .main {
+            /* box-sizing: border-box; */
+            display: table-cell;
+            width: 85%;
+            background-color: #ffffff;
+            border-radius: .5em;
+            padding: 1.5em;
+        }
+
+        .sidebar {
+            display: table-cell;
+            width: 15%;
+            background-color: #ffffff;
+            border-radius: .5em;
+        }
+
+        .widget button {
+            padding: 5px;
+            background-color: #cccccc;
+            font-size: 15px;
+            width: 150px;
+            border: none;
+        }
+
+        button.active {
+            background-color: #0072b0;
+            color: #ffffff;
+        }
+
+        .widget button:hover {
+            cursor: pointer;
+        }
+
+        .widget {
+            margin: 6px 30px;
         }
     </style>
 </head>
+
 <body>
-<h4>已售出房源数据如下：</h4>
-<table id="soldRoomsTable">
+    <header>
+        <h3 id="title">已售出房源信息如下：</h3>
+        <p>共查询到&nbsp;<span id="records" style="color: orange"></span>&nbsp;条记录</p>
+    </header>
 
-</table>
-<div id="sold_page"></div>
-<div>
-    <button id="exportExcel">导出数据</button>
-</div>
-<script type="text/javascript">
-    var getTokenFromUrl = function (url) {
-        if (url.indexOf('?')>=0) {
-            let arr = url.split('?');
-            let tmp = arr[1].split('=')
-            return tmp[1]
-        }
-    }
+    <div>
 
-    var token = getTokenFromUrl(window.location.href)
+    </div>
+    <div class="wrapper">
+        <div class="container">
+            <aside class="sidebar">
+                <div class="widget">
+                    <button onclick="querySoldInt()">查询已售出房源</button>
+                </div>
+                <div class="widget">
+                    <button onclick="queryAssignRooms()">查询关联房源</button>
+                </div>
+                <div class="widget">
+                    <button onclick="queryNotRigidRooms(this)">查询非刚需房源</button>
+                </div>
+                <div class="widget">
+                    <button id="exportExcel">导出数据</button>
+                </div>
+            </aside>
+            <main class="main">
+                <table id="soldRoomsTable">
 
-    $(function () {
-        if (token) {
-            window.sessionStorage.setItem('activityToken', token)
-        }
-        $("#soldRoomsTable").jqGrid({
-            //caption: '销售员信息',
-            // postData:postData,
-            data: 'saler_list',
-            mtype: 'post',
-            url: preHTTP + 'soldRooms',
-            datatype: "local",
-            ajaxGridOptions: {contentType: 'application/json; charset=utf-8'},
-            colNames: ['楼栋号', '单元号', '房号', '面积(㎡)', '单价(元/㎡)', '总价(元)', '所属销售', '购买时间','客户姓名', '身份证号', '手机号'],
-            colModel: [
-                //{name:'id',index:'id', width:30,align:'center'},
-                {name: 'bNo', index: 'bNo', align: 'center', width: 60, sortable: true},
-                {name: 'uNo', index: 'uNo', align: 'center', width: 60, sortable: true},
-                {name: 'rNo', index: 'rNo', align: 'center', width: 60, sortable: false},
-                {name: 'area', index: 'area', align: 'center', width: 70, align: 'center', sortable: false},
-                {name: 'fuPrice', index: 'fuPrice', align: 'center', width: 70, align: 'center', sortable: false},
-                {name: 'fPrice', index: 'fPrice', align: 'center', width: 70, align: 'center',formatter:formatMoney, sortable: false},
-                {name: 'saler', index: 'saler', align: 'center', width: 70, align: 'center', sortable: false},
-                {name: 'bTime', index: 'bTime', align: 'center', width: 120, align: 'center', formatter:formatDate, sortable: false},
-                {name: 'name', index: 'name', width: 70, align: 'center', sortable: false},
-                {name: 'idCode', index: 'idCode', width: 120, align: 'center', sortable: false},
-                {name: 'mobile', index: 'mobile', align: 'center', width: 80, sortable: false}
-            ],
-            rowNum: 10,
-            pager: '#sold_page',
-            pgtext: '第{0}页 共{1}页',
-            recordtext: '第 {0} - {1}条记录 ',
-            autowidth: true,
-            height: 400,
-            viewrecords: true,
-            sortable: false,
-            jsonReader: {
-                root: "rows",
-                page: "page",
-                total: function (obj) {
-                    return Math.ceil(obj.records / 10);
-                },
-                records: "records",
-                repeatitems: false
-            },
+                </table>
+                <div id="sold_page"></div>
+            </main>
+        </div>
+    </div>
 
-            serializeGridData: function (data) {
-                return JSON.stringify(data);
+    <script type="text/javascript">
+        function getTokenFromUrl(url) {
+            if (url.indexOf('?') >= 0) {
+                let arr = url.split('?');
+                let tmp = arr[1].split('=')
+                return tmp[1]
             }
+        }
 
-        });
-        $('#saler_table').navGrid("#sold_page", {edit: false, add: false, del: false, search: false, refresh: false});
+        var token = getTokenFromUrl(window.location.href)
 
-        querySoldInt()
+        $(function () {
+            if (token) {
+                window.sessionStorage.setItem('activityToken', token)
+            }
+            initialData('soldRooms', 1)
+            setBtnActived(0)
+        })
+
+
+        function initialData(requestUrl, page) {
+            console.log(requestUrl)
+            $("#soldRoomsTable").jqGrid({
+                //caption: '销售员信息',
+                // postData:postData,
+                data: 'saler_list',
+                mtype: 'post',
+                url: preHTTP + requestUrl,
+                datatype: "local",
+                ajaxGridOptions: { contentType: 'application/json; charset=utf-8' },
+                colNames: ['楼栋号', '单元号', '房号', '面积(㎡)', '单价(元/㎡)', '总价(元)', '所属销售', '购买时间', '客户姓名', '身份证号', '手机号'],
+                colModel: [
+                    //{name:'id',index:'id', width:30,align:'center'},
+                    { name: 'bNo', index: 'bNo', align: 'center', width: 60, sortable: true },
+                    { name: 'uNo', index: 'uNo', align: 'center', width: 60, sortable: true },
+                    { name: 'rNo', index: 'rNo', align: 'center', width: 60, sortable: false },
+                    { name: 'area', index: 'area', align: 'center', width: 70, align: 'center', sortable: false },
+                    { name: 'fuPrice', index: 'fuPrice', align: 'center', width: 70, align: 'center', sortable: false },
+                    { name: 'fPrice', index: 'fPrice', align: 'center', width: 70, align: 'center', formatter: formatMoney, sortable: false },
+                    { name: 'saler', index: 'saler', align: 'center', width: 70, align: 'center', sortable: false },
+                    { name: 'bTime', index: 'bTime', align: 'center', width: 120, align: 'center', formatter: formatDate, sortable: false },
+                    { name: 'name', index: 'name', width: 70, align: 'center', sortable: false },
+                    { name: 'idCode', index: 'idCode', width: 120, align: 'center', sortable: false },
+                    { name: 'mobile', index: 'mobile', align: 'center', width: 80, sortable: false }
+                ],
+                rowNum: 10,
+                pager: '#sold_page',
+                pgtext: '第{0}页 共{1}页',
+                recordtext: '第 {0} - {1}条记录',
+                autowidth: true,
+                height: 400,
+                viewrecords: true,
+                sortable: false,
+                jsonReader: {
+                    root: "rows",
+                    page: "page",
+                    total: function (obj) {
+                        return Math.ceil(obj.records / 10);
+                    },
+                    records: "records",
+                    repeatitems: false
+                },
+
+                loadComplete: function (obj) {
+                    if (obj){
+                        console.log(obj.records)
+                        $("#records").text(obj.records);
+                    }
+                    
+                },
+
+                serializeGridData: function (data) {
+                    return JSON.stringify(data);
+                }
+            });
+
+            $('#soldRoomsTable').navGrid("#sold_page", { edit: false, add: false, del: false, search: false, refresh: false });
+            querySoldInt()
+        }
+
+        function querySoldInt() {
+            setBtnActived(0)
+            $('#title').text("已售出房源信息如下：")
+            $("#soldRoomsTable").jqGrid('setGridParam', {
+                url: preHTTP + 'soldRooms',
+                page: 1,
+                datatype: "json",
+                postData: { token: window.sessionStorage.getItem('activityToken') }
+            }).trigger("reloadGrid");
+        }
+
+
+
+        // 查询关联房源信息
+        function queryAssignRooms() {
+            setBtnActived(1)
+            $('#title').text("关联房源信息如下：")
+            $('#soldRoomsTable').jqGrid('setGridParam', {
+                url: preHTTP + 'assignRooms',
+                page: 1,
+                datatype: 'json',
+                postData: { token: window.sessionStorage.getItem('activityToken') }
+            }).trigger("reloadGrid")
+        }
+
+
+        // 查询非刚需房源信息
+        function queryNotRigidRooms() {
+            setBtnActived(2)
+            $('#title').text("非刚需房源信息如下：")
+            $('#soldRoomsTable').jqGrid('setGridParam', {
+                url: preHTTP + 'notRigidRooms',
+                page: 1,
+                datatype: 'json',
+                postData: { token: window.sessionStorage.getItem('activityToken') }
+            }).trigger("reloadGrid")
+        }
 
         $('#exportExcel').click(function (e) {
+            setBtnActived(3)
             e.preventDefault()
             exportData()
+
         })
-        exportData()
-    })
 
-
-
-
-    function querySoldInt() {
-        var postData = {};
-        postData.token = token ? token : window.sessionStorage.getItem('activityToken');
-
-        $("#soldRoomsTable").jqGrid('setGridParam', {datatype: "json", postData: postData}).trigger("reloadGrid");
-    }
-
-    function formatDate (date) {
-        let parseDate = Date.parse(date)
-        let reqDate = (new Date(parseDate)).FormatDate('yyyy-MM-dd hh:mm:ss')
-        if (date) {
-            return reqDate
-        } else {
-            return ''
+        function setBtnActived(index) {
+            var btns = $('.widget button')
+            for (var i = 0; i < btns.length; i++) {
+                if (i === index) {
+                    btns[i].setAttribute('class', 'active')
+                } else {
+                    btns[i].removeAttribute('class', 'active')
+                }
+            }
         }
 
-    }
+        function formatDate(date) {
+            let parseDate = Date.parse(date)
+            let reqDate = (new Date(parseDate)).FormatDate('yyyy-MM-dd hh:mm:ss')
+            if (date) {
+                return reqDate
+            } else {
+                return ''
+            }
 
-    function formatMoney (s, n) {
-        n = n > 0 && n <= 20 ? n : 0
-        s = parseFloat((s + '').replace(/[^\d.-]/g, '')).toFixed(n) + ''
-        var l = s.split('.')[0].split('').reverse()
-        var r = s.split('.')[1]
-        var t = ''
-        for (var i = 0; i < l.length; i++) {
-            t += l[i] + ((i + 1) % 3 === 0 && (i + 1) !== l.length ? ',' : '')
         }
-        if (n > 0) {
-            return t.split('').reverse().join('') + '.' + r
-        } else {
-            return t.split('').reverse().join('')
-        }
-    }
 
-    // 导出数据
-    function exportData() {
-        var token = token ? token : window.sessionStorage.getItem('activityToken')
-        var url = preHTTP + 'exportData?token=' + token
-        window.open(url)
-    }
-</script>
+        function formatMoney(s, n) {
+            n = n > 0 && n <= 20 ? n : 0
+            s = parseFloat((s + '').replace(/[^\d.-]/g, '')).toFixed(n) + ''
+            var l = s.split('.')[0].split('').reverse()
+            var r = s.split('.')[1]
+            var t = ''
+            for (var i = 0; i < l.length; i++) {
+                t += l[i] + ((i + 1) % 3 === 0 && (i + 1) !== l.length ? ',' : '')
+            }
+            if (n > 0) {
+                return t.split('').reverse().join('') + '.' + r
+            } else {
+                return t.split('').reverse().join('')
+            }
+        }
+
+        // 导出数据
+        function exportData() {
+            var token = token ? token : window.sessionStorage.getItem('activityToken')
+            var url = preHTTP + 'exportData?token=' + token
+            window.open(url)
+        }
+    </script>
 </body>
+
 </html>
