@@ -3,15 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>查看已售</title>
-    <link rel="stylesheet" href="./lib/css/ui-lightness/jquery-ui-1.10.4.custom.min.css">
-    <link rel="stylesheet" href="./lib/css/ui.jqgrid.css">
-    <script type="text/javascript" src="./lib/js/jquery-1.7.2.min.js"></script>
-    <script type="text/javascript" src="./lib/js/i18n/grid.locale-en.js"></script>
-    <script type="text/javascript" src="./lib/js/jquery.jqGrid.min.js"></script>
-    <script type="text/javascript" src="./lib/js/jquery-ui-1.10.4.custom.js"></script>
-    <script type="text/javascript" src="./lib/js/dateFormat.js"></script>
-    <script type="text/javascript" src="./lib/js/preHTTP.js"></script>
+    <title>房源信息</title>
+    <link rel="stylesheet" href="./public/lib/css/jquery-ui.min.css">
+    <link rel="stylesheet" href="./public/lib/css/ui.jqgrid.css">
+    <script src="./public/lib/js/jquery-3.2.1.min.js"></script>
+    <script src="./public/lib/js/i18n/grid.locale-en.js"></script>
+    <script src="./public/lib/js/jquery.jqGrid.min.js"></script>
+    <script src="./public/lib/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="./public/dateFormat.js"></script>
+    <script type="text/javascript" src="./public/preHTTP.js"></script>
     <style>
         :root {
             box-sizing: border-box;
@@ -111,7 +111,7 @@
                     <button onclick="queryAssignRooms()">查询关联房源</button>
                 </div>
                 <div class="widget">
-                    <button onclick="queryNotRigidRooms(this)">查询非刚需房源</button>
+                    <button onclick="queryNotRigidRooms()">查询非刚需房源</button>
                 </div>
                 <div class="widget">
                     <button id="exportExcel">导出数据</button>
@@ -121,7 +121,7 @@
                 <table id="soldRoomsTable">
 
                 </table>
-                <div id="sold_page"></div>
+                <div id="sold_page" slot="height: 60px;"></div>
             </main>
         </div>
     </div>
@@ -135,9 +135,10 @@
             }
         }
 
-        var token = getTokenFromUrl(window.location.href)
+
 
         $(function () {
+            var token = getTokenFromUrl(window.location.href)
             if (token) {
                 window.sessionStorage.setItem('activityToken', token)
             }
@@ -147,7 +148,6 @@
 
 
         function initialData(requestUrl, page) {
-            console.log(requestUrl)
             $("#soldRoomsTable").jqGrid({
                 //caption: '销售员信息',
                 // postData:postData,
@@ -161,7 +161,7 @@
                     //{name:'id',index:'id', width:30,align:'center'},
                     { name: 'bNo', index: 'bNo', align: 'center', width: 60, sortable: true },
                     { name: 'uNo', index: 'uNo', align: 'center', width: 60, sortable: true },
-                    { name: 'rNo', index: 'rNo', align: 'center', width: 60, sortable: false },
+                    { name: 'rNo', index: 'rNo', align: 'center', width: 60, sortable: true },
                     { name: 'area', index: 'area', align: 'center', width: 70, align: 'center', sortable: false },
                     { name: 'fuPrice', index: 'fuPrice', align: 'center', width: 70, align: 'center', sortable: false },
                     { name: 'fPrice', index: 'fPrice', align: 'center', width: 70, align: 'center', formatter: formatMoney, sortable: false },
@@ -176,9 +176,11 @@
                 pgtext: '第{0}页 共{1}页',
                 recordtext: '第 {0} - {1}条记录',
                 autowidth: true,
-                height: 400,
+                height: 360,
                 viewrecords: true,
-                sortable: false,
+                multiSort: true,
+                sortorder: 'asc',
+                sortname: 'bNo',
                 jsonReader: {
                     root: "rows",
                     page: "page",
@@ -188,21 +190,18 @@
                     records: "records",
                     repeatitems: false
                 },
-
                 loadComplete: function (obj) {
-                    if (obj){
-                        console.log(obj.records)
+                    if (obj) {
+                        // console.log(obj.records)
                         $("#records").text(obj.records);
                     }
-                    
                 },
-
                 serializeGridData: function (data) {
                     return JSON.stringify(data);
                 }
             });
 
-            $('#soldRoomsTable').navGrid("#sold_page", { edit: false, add: false, del: false, search: false, refresh: false });
+            // $('#soldRoomsTable').navGrid("#sold_page", { edit: false, add: false, del: false, search: false, refresh: false });
             querySoldInt()
         }
 
